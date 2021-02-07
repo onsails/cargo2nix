@@ -1,10 +1,10 @@
 {
   inputs = {
     utils.url = github:numtide/flake-utils;
-    nixpkgs-mozilla = { url = github:mozilla/nixpkgs-mozilla; flake = false; };
+    rust-overlay.url = "github:oxalica/rust-overlay";
   };
 
-  outputs = { self, nixpkgs, utils, nixpkgs-mozilla, ... }@inputs:
+  outputs = { self, nixpkgs, utils, rust-overlay, ... }@inputs:
     let cargo2nixOverlay = import ./overlay;
     in
     {
@@ -15,15 +15,14 @@
           inherit system;
           overlays = [
             cargo2nixOverlay
-            (import "${nixpkgs-mozilla}/rust-overlay.nix")
+            rust-overlay.overlay
           ];
         };
-        rustChannel = "1.49.0";
-        rustChannelSha256 = "KCh2UBGtdlBJ/4UOqZlxUtcyefv7MH1neoVNV4z0nWs=";
+        rustChannel = "stable";
         rustPkgs =
           pkgs.rustBuilder.makePackageSet' {
             packageFun = import ./Cargo.nix;
-            inherit rustChannel rustChannelSha256;
+            inherit rustChannel;
             packageOverrides = pkgs: pkgs.rustBuilder.overrides.all;
             localPatterns = [ ''^(src|tests|templates)(/.*)?'' ''[^/]*\.(rs|toml)$'' ];
           };
